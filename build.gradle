@@ -9,7 +9,7 @@ buildscript {
       gradlePluginPortal()
   }
   dependencies {
-      classpath 'de.undercouch:gradle-download-task:4.1.1'
+      classpath 'de.undercouch:gradle-download-task:5.6.0'
   }
   //Gradle Download plugin <<
 }
@@ -143,7 +143,7 @@ task refreshDependences(){
 	file('dependences/tmp/').mkdirs()
 	file('dependences/webuiClass').mkdirs()
 	doLast {
-		download {
+		download.run {
 			src 'https://github.com/adempiere/zk-ui/releases/download/' + adempiereZKRelease + '/zk-ui.war'
             dest 'dependences/tmp/zk-ui.war'
             overwrite false
