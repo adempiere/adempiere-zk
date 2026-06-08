@@ -11,27 +11,19 @@ buildscript {
   dependencies {
       classpath 'de.undercouch:gradle-download-task:4.1.1'
   }
-  //Gradle Download plugin <<  
+  //Gradle Download plugin <<
 }
 
 repositories {
 	mavenLocal()
     mavenCentral()
     maven {
-    	url = "https://maven.pkg.github.com/Systemhaus-Westfalia/adempiere-shw"
+    	url = "https://maven.pkg.github.com/adempiere/adempiere-customizations"
         credentials {
         	username = findProperty("deployUsername") ?: System.properties['deploy.user']
-            password = findProperty("deployToken") ?: System.properties['deploy.token'] 
+            password = findProperty("deployToken") ?: System.properties['deploy.token']
 		}
 	}
-	// ERP Repos
-    maven {
-    	url = "https://maven.pkg.github.com/erpya/Repository"
-        credentials {
-        	username = findProperty("deployUsername") ?: System.properties['deploy.user']
-            password = findProperty("deployToken") ?: System.properties['deploy.token'] 
-		}
-    }
     maven {
     	url = "https://maven.pkg.github.com/adempiere/adempiere"
         credentials {
@@ -48,9 +40,11 @@ configurations.all {
     }
 }
 
-sourceCompatibility = 17
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 def adempiereZKRelease = '1.2.2'
-def adempiereSHWRelease = '3.9.4.001-1.1.61'
 dependencies {
    	//	External Library
    	implementation fileTree(
@@ -60,7 +54,9 @@ dependencies {
         ]
     )
     implementation files("dependences/classes/")
-    implementation 'com.shw:adempiere-shw.shw_libs:'+ adempiereSHWRelease
+    implementation('io.github.adempiere:adempiere-customizations:3.9.4.001-1.0.0') {
+        exclude group: 'adempiere-customizations', module: 'adempiere-customizations.patches'
+    }
 }
 
 war {
@@ -110,7 +106,7 @@ war {
 	        include 'WEB-INF/xsd/**.*'
 	        include 'WEB-INF/*.xml'
 	    }
-	    
+
 	    into('.patch') {
 		    from {
 		        configurations.runtimeClasspath
@@ -138,7 +134,7 @@ sourceSets {
 	     	include 'org/adempiere/version.properties'
 	     }
     }
-    
+
 }
 
 //Get War Dependences
@@ -152,17 +148,17 @@ task refreshDependences(){
             dest 'dependences/tmp/zk-ui.war'
             overwrite false
         }
-        
+
         copy {
             from zipTree('dependences/tmp/zk-ui.war')
             into 'dependences/webuiClass/'
         }
-        
+
         copy {
 	        from "dependences/webuiClass/WEB-INF/classes"
 	        into "dependences/classes"
     	}
-    	
+
     	file('dependences/webuiClass/WEB-INF/lib').deleteDir()
     	file('dependences/classes/lib').deleteDir()
    }
@@ -175,7 +171,7 @@ task patchZK(type: Copy) {
 	def libPath = "$buildDir/libs/"
 	from zipTree(libPath + project.name + ".war")
 	into (releasePath + project.name)
-   
+
    	doLast {
 		copy {
 			from releasePath + project.name + "/.patch/"
@@ -193,5 +189,3 @@ task releaseZK(type: Zip) {
     destinationDirectory = file(basePath)
     archiveFileName = project.name + '.war'
 }
-
-
